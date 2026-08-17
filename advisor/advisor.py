@@ -11,6 +11,43 @@ _SEV_ORDER = {
 }
 
 
+def _placeholders(state: State) -> dict[str, str]:
+    """Real values for {dc}/{domain}/{targets}/{user}/{pw}, when state has them."""
+    vals: dict[str, str] = {}
+
+    dcs = state.dcs()
+    if dcs:
+        vals["{dc}"] = dcs[0].ip
+
+    hosts = state.hosts()
+    if hosts:
+        vals["{targets}"] = " ".join(h.ip for h in hosts)
+
+    domain = next((d.name for d in state.domains()), None)
+    if not domain:
+        domain = next((h.domain for h in hosts if h.domain), None)
+    if not domain:
+        domain = next((c.domain for c in state.credentials() if c.domain), None)
+    if not domain:
+        domain = next((u.domain for u in state.users() if u.domain), None)
+    if domain:
+        vals["{domain}"] = domain
+
+    # prefer a validated cred; a password fills {pw}, a hash fills {hash}
+    creds = state.credentials(validated_only=True) or state.credentials()
+    if creds:
+        c = creds[0]
+        vals["{user}"] = c.username
+        vals["{pw}"] = c.secret
+    return vals
+
+
+def _fill(cmd: str, vals: dict[str, str]) -> str:
+    for token, value in vals.items():
+        cmd = cmd.replace(token, value)
+    return cmd
+
+
 def advise(state: State) -> list[Recommendation]:
     recs: list[Recommendation] = []
     seen: set[str] = set()
@@ -25,6 +62,9 @@ def advise(state: State) -> list[Recommendation]:
         except Exception:  # one broken rule shouldn't kill the rest
             continue
     recs.sort(key=lambda r: _SEV_ORDER.get(r.severity, 9))
+    vals = _placeholders(state)
+    for rec in recs:
+        rec.suggested_cmd = _fill(rec.suggested_cmd, vals)
     return recs
 
 

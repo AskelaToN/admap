@@ -58,9 +58,10 @@ def test_advisor_emits_per_esc_playbook():
     assert any("Abuse ESC8 on 'CORP-CA'" in t for t in titles)
 
     esc1 = next(r for r in recs if "ESC1" in r.title)
-    # placeholders for held creds are preserved for copy-paste; template filled
+    # ESC template name is filled, and the advisor now fills {domain}/{user} from state
     assert "-template UserAuth" in esc1.suggested_cmd
-    assert "{domain}" in esc1.suggested_cmd
+    assert "{domain}" not in esc1.suggested_cmd
+    assert "administrator@corp" in esc1.suggested_cmd
     assert esc1.severity == Severity.CRITICAL
 
     # generic enumeration prompt must NOT appear once findings exist
