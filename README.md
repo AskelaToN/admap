@@ -54,6 +54,38 @@ python -m admap report
 
 `--dry-run` on any command prints the tool invocations instead of running them.
 
+## Docker (self-contained image)
+
+The `Dockerfile` builds a "fat" image with admap and every tool it calls baked
+in (nmap, NetExec, Impacket, kerbrute, ldapsearch, BloodHound.py, Certipy,
+smbclient) so nothing else needs installing on the host. The image is
+Debian-based and self-contained, so the host OS is irrelevant - it runs the same
+on Ubuntu, Kali, or anywhere Docker runs.
+
+```bash
+# build once (~5-10 min; ~2.4 GB image - NetExec's dep tree is the bulk)
+docker build -t admap .
+
+# run against a target: --network host to reach the DC,
+# -v "$PWD":/work so the DB, hashes and BloodHound zip land on the host
+docker run --rm --network host -v "$PWD":/work -w /work admap \
+    init --targets 10.10.10.0/24 --domain corp.local --dc 10.10.10.10
+docker run --rm --network host -v "$PWD":/work -w /work admap run discovery
+docker run --rm --network host -v "$PWD":/work -w /work admap run unauth
+docker run --rm --network host -v "$PWD":/work -w /work admap advise
+```
+
+Handy alias so operators just type `admap ...`:
+
+```bash
+alias admap='docker run --rm --network host -v "$PWD":/work -w /work admap'
+```
+
+The build installs the Python tools in isolated pipx venvs (so NetExec and
+Impacket don't clash on dependencies) and pulls a Rust toolchain, which NetExec
+needs to build some wheels. Full tool list, source links, and build gotchas are
+in [DOCKER.md](DOCKER.md).
+
 ## Adding a branch
 
 Write a `_r_*` function in `advisor/rules.py` and add it to `ALL_RULES`. If you
