@@ -279,6 +279,23 @@ def _r_loot(state: State) -> Iterable[Recommendation]:
         )
 
 
+def _r_winrm(state: State) -> Iterable[Recommendation]:
+    for f in state.findings():
+        if f.category != "access" or not f.title.startswith("WinRM shell:"):
+            continue
+        host, user = (f.evidence.split("|", 1) + ["", ""])[:2]
+        yield Recommendation(
+            title=f"WinRM shell on {host}",
+            action=f"{user} can log in over WinRM; get an interactive shell.",
+            suggested_cmd=f"evil-winrm -i {host} -u {user} -p '<password>'",
+            tool="evil-winrm",
+            mindmap_node="Authed > Lateral movement > WinRM",
+            severity=Severity.HIGH,
+            rationale="Valid WinRM auth confirmed by the check module.",
+            unlocks="Interactive shell on the host.",
+        )
+
+
 def _r_spray_gate(state: State) -> Iterable[Recommendation]:
     # spraying stays a manual, warned suggestion (lockout risk)
     if state.credentials(validated_only=True) or not state.users():
@@ -383,6 +400,7 @@ ALL_RULES: list[Rule] = [
     Rule("kerberoast", Phase.AUTHED, _r_kerberoast),
     Rule("shares", Phase.AUTHED, _r_shares_loot),
     Rule("loot", Phase.AUTHED, _r_loot),
+    Rule("winrm", Phase.AUTHED, _r_winrm),
     Rule("gpp", Phase.AUTHED, _r_gpp),
     Rule("adcs", Phase.AUTHED, _r_adcs),
     Rule("delegation", Phase.AUTHED, _r_delegation),

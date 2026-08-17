@@ -63,9 +63,9 @@ def cmd_creds(args, cfg: Config, state: State) -> None:
         username=args.user, domain=cfg.domain or "",
         secret=args.password or args.hash or "",
         secret_type=SecretType.PASSWORD if args.password else SecretType.NT_HASH,
-        source="manual", validated=True,
+        source="manual", validated=False,
     ))
-    log.info("stored credentials for %s (marked validated)", args.user)
+    log.info("stored credentials for %s (run 'admap check' to validate)", args.user)
 
 
 def cmd_run(args, cfg: Config, state: State) -> None:
@@ -82,7 +82,7 @@ def cmd_auto(args, cfg: Config, state: State) -> None:
     runner = _runner(cfg)
     order = ["discovery", "unauth"]
     if cfg.has_creds():
-        order += ["authed", "bloodhound", "adcs", "delegation"]
+        order += ["check", "authed", "bloodhound", "adcs", "delegation"]
     for name in order:
         log.info("=== module: %s ===", name)
         MODULES[name].run(cfg, state, runner)

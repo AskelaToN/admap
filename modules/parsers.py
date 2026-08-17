@@ -176,6 +176,40 @@ def parse_laps(output: str) -> list[tuple[str, str]]:
     return out
 
 
+@dataclass
+class AuthResult:
+    proto: str
+    host: str
+    hostname: str
+    valid: bool = False
+    pwned: bool = False
+    locked: bool = False
+
+
+_AUTH_LINE = re.compile(
+    r"^\s*(\w+)\s+(\d{1,3}(?:\.\d{1,3}){3})\s+\d+\s+(\S+)\s+(.*)$"
+)
+
+
+def parse_nxc_auth(output: str) -> list[AuthResult]:
+    # one result per host line: [+] valid, [-] failed, (Pwn3d!) admin, LOCKED
+    out: list[AuthResult] = []
+    for line in output.splitlines():
+        m = _AUTH_LINE.match(line)
+        if not m:
+            continue
+        proto, ip, host, payload = m.group(1), m.group(2), m.group(3), m.group(4)
+        up = payload.upper()
+        valid = "[+]" in payload
+        failed = "[-]" in payload
+        locked = "LOCKED" in up
+        if not (valid or failed or locked):
+            continue
+        out.append(AuthResult(proto=proto.lower(), host=ip, hostname=host,
+                              valid=valid, pwned="PWN3D" in up, locked=locked))
+    return out
+
+
 def parse_spn_users(output: str) -> list[str]:
     # GetUserSPNs table: SPN column then SamAccountName; take distinct names
     users: list[str] = []
