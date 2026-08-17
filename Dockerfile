@@ -14,6 +14,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH="/usr/local/bin:${PATH}"
 
 # System tools admap calls directly, plus build/runtime deps for the Python tools.
+# NetExec pulls Rust-backed wheels (e.g. aardwolf), so rustc/cargo + pkg-config
+# and the -dev headers below are required at build time.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         nmap \
         ldap-utils \
@@ -23,10 +25,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
         curl \
         ca-certificates \
-        gcc \
+        build-essential \
         python3-dev \
         libssl-dev \
         libffi-dev \
+        libkrb5-dev \
+        pkg-config \
+        rustc \
+        cargo \
         pipx \
     && rm -rf /var/lib/apt/lists/*
 
