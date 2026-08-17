@@ -1,0 +1,22 @@
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+.idea/
+.vscode/
+
+# engagement artifacts - never commit loot or credentials
+engagement.db
+*.db
+admap.config.json
+loot/
+report.md
+report.json
+*.hashes
+users_known.txt
+users.txt
+adcs*.json
+*_Certipy.json

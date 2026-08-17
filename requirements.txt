@@ -1,0 +1,15 @@
+# No Python dependencies - stdlib only (sqlite3, argparse).
+#
+# admap drives these external CLI tools; install them on your Kali box.
+# Each is checked with `which` before use and skipped if missing.
+#
+#   nmap
+#   netexec            (nxc)      # apt install netexec / pipx install netexec
+#   impacket           (impacket-GetNPUsers, -GetUserSPNs, -secretsdump, -findDelegation)
+#   kerbrute
+#   ldap-utils         (ldapsearch)
+#   bloodhound-python  (pipx install bloodhound)
+#   certipy-ad         (pipx install certipy-ad)
+#
+# Dev only:
+#   pytest
