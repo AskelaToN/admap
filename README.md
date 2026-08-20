@@ -2,8 +2,6 @@
   <img src="assets/admap-logo.svg" alt="admap" width="660">
 </p>
 
-# admap
-
 AD enumeration orchestrator with an attack-path advisor, loosely following the
 Orange Cyberdefense AD mindmap.
 
